@@ -1,0 +1,45 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiry: 900000
+  refresh-token-expiry: 604800000
+
+paystack:
+  secret-key: ${PAYSTACK_SECRET_KEY}
+  base-url: https://api.paystack.co
+
+termii:
+  api-key: ${TERMII_API_KEY}
+  base-url: ${TERMII_BASE_URL}
+
+smile:
+  api-key: ${SMILE_API_KEY}
+  partner-id: ${SMILE_PARTNER_ID}
+  base-url: https://api.smileidentity.com
+
+kolo:
+  fine:
+    grace-period-days: 3
+    tier-one-rate: 0.05
+    tier-two-rate: 0.10
+    platform-cut: 0.30
+  loan:
+    tier-one-interest-rate: 0.05
+    tier-two-interest-rate: 0.10
+    platform-interest-cut: 0.30
+    voting-window-hours: 72
+
+logging:
+  level:
+    com.kolo: INFO
+    org.springframework.security: WARN

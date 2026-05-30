@@ -2,7 +2,6 @@ spring:
   application:
     name: kolo-backend
 
-  # Database
   datasource:
     url: jdbc:postgresql://localhost:5433/kolo_db
     username: postgres
@@ -18,57 +17,45 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
-  # Flyway - handles DB migrations
   flyway:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-  # Redis
   data:
     redis:
       host: localhost
       port: 6380
       timeout: 2000ms
 
-  # Async
   task:
     execution:
       pool:
         core-size: 5
         max-size: 20
 
-# JWT Config
 jwt:
-  secret: your-super-secret-key-minimum-256-bits-long-change-this-in-production
-  access-token-expiry: 86400000  # 24 hours for development
-  refresh-token-expiry: 604800000 # 7 days
-#  access-token-expiry: 900000       # 15 minutes in ms
-#  refresh-token-expiry: 604800000   # 7 days in ms
+  secret: dev-secret-key-minimum-256-bits-long-change-in-production-never-use-this
+  access-token-expiry: 86400000
+  refresh-token-expiry: 604800000
 
-# Paystack
 paystack:
-  secret-key: sk_test_34e7df8065fb09e507319eb3bc3fbb4911bd7e0e
+  secret-key: ${PAYSTACK_SECRET_KEY:sk_test_your_key_here}
   base-url: https://api.paystack.co
 
-# Termii
 termii:
-  api-key: TLwjtWUcDMpSrDzPegOZzSFvQExKbwkwahNqKHsKfJDSjCptcfRpTZClMZMRNk
-  base-url: https://v3.api.termii.com
+  api-key: ${TERMII_API_KEY:your_termii_key_here}
+  base-url: ${TERMII_BASE_URL:https://v3.api.termii.com}
 
-# Smile Identity
 smile:
-  api-key: your_smile_api_key
+  api-key: your_smile_key
   partner-id: your_partner_id
   base-url: https://api.smileidentity.com
 
-# OTP Config
 otp:
   expiry-minutes: 10
   length: 6
 
-
-# App Config
 kolo:
   fine:
     grace-period-days: 3

@@ -16,6 +16,9 @@ build/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+application-prod.yml
+.env
+*.env
 
 ### IntelliJ IDEA ###
 .idea
