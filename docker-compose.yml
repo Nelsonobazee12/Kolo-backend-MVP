@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: kolo_postgres
+    environment:
+      POSTGRES_DB: kolo_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - kolo_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: kolo_redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - kolo_redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  kolo_postgres_data:
+  kolo_redis_data:

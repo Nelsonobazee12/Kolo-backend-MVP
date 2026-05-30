@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: kolo-backend
+
+  # Database
+  datasource:
+    url: jdbc:postgresql://localhost:5433/kolo_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  # Flyway - handles DB migrations
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  # Redis
+  data:
+    redis:
+      host: localhost
+      port: 6380
+      timeout: 2000ms
+
+  # Async
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 20
+
+# JWT Config
+jwt:
+  secret: your-super-secret-key-minimum-256-bits-long-change-this-in-production
+  access-token-expiry: 86400000  # 24 hours for development
+  refresh-token-expiry: 604800000 # 7 days
+#  access-token-expiry: 900000       # 15 minutes in ms
+#  refresh-token-expiry: 604800000   # 7 days in ms
+
+# Paystack
+paystack:
+  secret-key: sk_test_34e7df8065fb09e507319eb3bc3fbb4911bd7e0e
+  base-url: https://api.paystack.co
+
+# Termii
+termii:
+  api-key: your_termii_api_key
+  base-url: https://api.ng.termii.com
+
+# Smile Identity
+smile:
+  api-key: your_smile_api_key
+  partner-id: your_partner_id
+  base-url: https://api.smileidentity.com
+
+# OTP Config
+otp:
+  expiry-minutes: 10
+  length: 6
+
+# App Config
+kolo:
+  fine:
+    grace-period-days: 3
+    tier-one-rate: 0.05
+    tier-two-rate: 0.10
+    platform-cut: 0.30
+  loan:
+    tier-one-interest-rate: 0.05
+    tier-two-interest-rate: 0.10
+    platform-interest-cut: 0.30
+    voting-window-hours: 72
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.kolo: DEBUG
+    org.springframework.security: DEBUG
