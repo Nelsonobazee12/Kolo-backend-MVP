@@ -12,6 +12,7 @@ import com.kolo.kolo_backend.groups.repository.GroupRepository
 import com.kolo.kolo_backend.groups.repository.MembershipRepository
 import com.kolo.kolo_backend.payments.service.PaystackService
 import com.kolo.kolo_backend.contributions.Transaction
+import com.kolo.kolo_backend.notifications.service.NotificationService
 import com.kolo.kolo_backend.shared.exception.AppException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -28,7 +29,8 @@ class FineService(
     private val membershipRepository: MembershipRepository,
     private val groupRepository: GroupRepository,
     private val transactionRepository: TransactionRepository,
-    private val paystackService: PaystackService
+    private val paystackService: PaystackService,
+    private val notificationService: NotificationService
 ) {
 
     companion object {
@@ -125,6 +127,13 @@ class FineService(
             )
         )
 
+        notificationService.sendFineNotification(
+            phoneNumber = membership.user.phoneNumber,
+            amountFormatted = formatKobo(fineAmount),
+            groupName = membership.group.name,
+            daysLate = daysLate
+        )
+
         // Drop trust score by 5 points per fine
         val user = membership.user
         user.trustScore = maxOf(0, user.trustScore - 5)
@@ -138,6 +147,12 @@ class FineService(
         membership.status = "SUSPENDED"
         membership.updatedAt = LocalDateTime.now()
         membershipRepository.save(membership)
+
+        notificationService.sendSuspensionNotice(
+            phoneNumber = membership.user.phoneNumber,
+            groupName = membership.group.name
+        )
+
         println("🚫 Membership suspended — ${membership.user.phoneNumber}")
     }
 
@@ -239,6 +254,11 @@ class FineService(
             fine.status = "PAID"
             fine.updatedAt = LocalDateTime.now()
             fineRepository.save(fine)
+
+            notificationService.sendFinePaymentConfirmation(
+                phoneNumber = user.phoneNumber,
+                amountFormatted = formatKobo(fine.amount)
+            )
 
             // Distribute fine — pool cut goes to group pool
             val group = fine.group

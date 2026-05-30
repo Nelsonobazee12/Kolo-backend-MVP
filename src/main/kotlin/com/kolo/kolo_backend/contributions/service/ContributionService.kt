@@ -7,8 +7,10 @@ import com.kolo.kolo_backend.contributions.dto.*
 import com.kolo.kolo_backend.contributions.repository.TransactionRepository
 import com.kolo.kolo_backend.groups.repository.GroupRepository
 import com.kolo.kolo_backend.groups.repository.MembershipRepository
+import com.kolo.kolo_backend.notifications.service.NotificationService
 import com.kolo.kolo_backend.payments.service.PaystackService
 import com.kolo.kolo_backend.shared.exception.AppException
+import com.kolo.kolo_backend.trust.service.TrustScoreService
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,7 +25,9 @@ class ContributionService(
     private val transactionRepository: TransactionRepository,
     private val groupRepository: GroupRepository,
     private val membershipRepository: MembershipRepository,
-    private val paystackService: PaystackService
+    private val paystackService: PaystackService,
+    private val notificationService: NotificationService,
+    private val trustScoreService: TrustScoreService
 ) {
 
     // Initiate contribution payment
@@ -152,10 +156,25 @@ class ContributionService(
         membership.updatedAt = LocalDateTime.now()
         membershipRepository.save(membership)
 
+        // Send confirmation SMS
+        notificationService.sendContributionConfirmation(
+            phoneNumber = transaction.user.phoneNumber,
+            amountFormatted = formatKobo(amountKobo),
+            groupName = group.name,
+            newBalanceFormatted = formatKobo(membership.savingsBalance)
+        )
+
         // Update group pool balance
         group.poolBalance += amountKobo
         group.updatedAt = LocalDateTime.now()
         groupRepository.save(group)
+
+        // Award points for on time contribution
+        trustScoreService.awardPoints(
+            user = transaction.user,
+            points = TrustScoreService.ON_TIME_CONTRIBUTION,
+            reason = "On time contribution"
+        )
 
         println("✅ Contribution processed — Member: ${transaction.user.phoneNumber}, Amount: ${formatKobo(amountKobo)}, Group: ${group.name}")
     }

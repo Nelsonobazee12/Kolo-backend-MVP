@@ -4,6 +4,7 @@ package com.kolo.kolo_backend.auth.services
 import com.kolo.kolo_backend.auth.User
 import com.kolo.kolo_backend.auth.dto.*
 import com.kolo.kolo_backend.auth.repository.UserRepository
+import com.kolo.kolo_backend.notifications.service.NotificationService
 import com.kolo.kolo_backend.shared.config.JwtService
 import com.kolo.kolo_backend.shared.exception.AppException
 import com.kolo.kolo_backend.shared.util.HashUtil
@@ -19,6 +20,7 @@ class AuthService(
     private val otpService: OtpService,
     private val jwtService: JwtService,
     private val passwordEncoder: PasswordEncoder,
+    private val notificationService: NotificationService
     // SmsProvider injected later when we build notifications
 ) {
 
@@ -41,8 +43,8 @@ class AuthService(
         val otp = otpService.generateOtp(normalizedPhone)
 
         // TODO: Send via Termii SMS — plug in when notifications module is built
-        // For now log to console (development only)
-        println("📱 OTP for $normalizedPhone: $otp")
+
+        notificationService.sendOtpSms(normalizedPhone, otp)
 
         return OtpResponse(
             message = "OTP sent to $normalizedPhone",

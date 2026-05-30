@@ -14,8 +14,10 @@ import com.kolo.kolo_backend.loans.LoanVote
 import com.kolo.kolo_backend.loans.dto.*
 import com.kolo.kolo_backend.loans.repository.LoanRepository
 import com.kolo.kolo_backend.loans.repository.LoanVoteRepository
+import com.kolo.kolo_backend.notifications.service.NotificationService
 import com.kolo.kolo_backend.payments.service.PaystackService
 import com.kolo.kolo_backend.shared.exception.AppException
+import com.kolo.kolo_backend.trust.service.TrustScoreService
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -34,7 +36,9 @@ class LoanService(
     private val userRepository: UserRepository,
     private val fineRepository: FineRepository,
     private val transactionRepository: TransactionRepository,
-    private val paystackService: PaystackService
+    private val paystackService: PaystackService,
+    private val notificationService: NotificationService,
+    private val trustScoreService: TrustScoreService
 ) {
 
     companion object {
@@ -187,6 +191,13 @@ class LoanService(
         // Create transfer recipient
         // For now log — full bank transfer in production
         // requires Paystack transfer API with OTP verification
+
+        notificationService.sendLoanApprovalNotification(
+            phoneNumber = user.phoneNumber,
+            amountFormatted = formatKobo(loan.amountRequested),
+            groupName = loan.group.name,
+            dueDate = loan.dueDate.toString()
+        )
         println("💰 Disbursing ${formatKobo(loan.amountRequested)} to ${user.phoneNumber}")
 
         // Deduct from pool
@@ -281,6 +292,12 @@ class LoanService(
             votingComplete = true
             loanStatus = "REJECTED"
         }
+
+        notificationService.sendLoanRejectionNotification(
+            phoneNumber = loan.borrower.phoneNumber,
+            amountFormatted = formatKobo(loan.amountRequested),
+            groupName = loan.group.name
+        )
 
         return VoteResponse(
             loanId = loanId.toString(),
@@ -399,7 +416,22 @@ class LoanService(
                 borrower.trustScore = minOf(100, borrower.trustScore + 10)
                 userRepository.save(borrower)
 
+                notificationService.sendLoanRepaymentConfirmation(
+                    phoneNumber = user.phoneNumber,
+                    amountFormatted = formatKobo(paystackData.amountKobo),
+                    remainingFormatted = formatKobo(maxOf(0, (loan.totalRepayable ?: 0L) - loan.amountRepaid)),
+                    fullyRepaid = loan.status == "REPAID"
+                )
+
                 println("✅ Loan fully repaid — ${user.phoneNumber}")
+            }
+
+            if (loan.status == "REPAID") {
+                trustScoreService.awardPoints(
+                    user = loan.borrower,
+                    points = TrustScoreService.LOAN_REPAID,
+                    reason = "Loan fully repaid"
+                )
             }
 
             loanRepository.save(loan)

@@ -9,6 +9,7 @@ import com.kolo.kolo_backend.groups.dto.*
 import com.kolo.kolo_backend.groups.repository.GroupRepository
 import com.kolo.kolo_backend.groups.repository.InvitationRepository
 import com.kolo.kolo_backend.groups.repository.MembershipRepository
+import com.kolo.kolo_backend.notifications.service.NotificationService
 import com.kolo.kolo_backend.shared.exception.AppException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -22,7 +23,8 @@ import java.util.UUID
 class GroupService(
     private val groupRepository: GroupRepository,
     private val membershipRepository: MembershipRepository,
-    private val invitationRepository: InvitationRepository
+    private val invitationRepository: InvitationRepository,
+    private val notificationService: NotificationService
 ) {
 
     // Create a new group
@@ -132,7 +134,12 @@ class GroupService(
         )
 
         // TODO: Send SMS via Termii with invite link
-        println("📨 Invitation for $normalizedPhone — Token: $token")
+        notificationService.sendGroupInvitation(
+            phoneNumber = normalizedPhone,
+            inviterName = user.fullName,
+            groupName = group.name,
+            inviteLink = "https://kolo.app/join/$token"
+        )
 
         return InvitationResponse(
             invitationToken = token,

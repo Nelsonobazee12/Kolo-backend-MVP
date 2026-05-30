@@ -53,8 +53,8 @@ paystack:
 
 # Termii
 termii:
-  api-key: your_termii_api_key
-  base-url: https://api.ng.termii.com
+  api-key: TLwjtWUcDMpSrDzPegOZzSFvQExKbwkwahNqKHsKfJDSjCptcfRpTZClMZMRNk
+  base-url: https://v3.api.termii.com
 
 # Smile Identity
 smile:
@@ -66,6 +66,7 @@ smile:
 otp:
   expiry-minutes: 10
   length: 6
+
 
 # App Config
 kolo:
