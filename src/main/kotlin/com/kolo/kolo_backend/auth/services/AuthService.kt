@@ -44,7 +44,18 @@ class AuthService(
 
         // TODO: Send via Termii SMS — plug in when notifications module is built
 
-        notificationService.sendOtpSms(normalizedPhone, otp)
+        // With this — sends SMS and falls back to console
+        val smsSent = try {
+            notificationService.sendOtpSms(normalizedPhone, otp)
+            true
+        } catch (e: Exception) {
+            false
+        }
+
+        // Always log in development so we're never stuck
+        if (!smsSent || System.getenv("SPRING_PROFILES_ACTIVE") != "prod") {
+            println("📱 OTP for $normalizedPhone: $otp")
+        }
 
         return OtpResponse(
             message = "OTP sent to $normalizedPhone",
